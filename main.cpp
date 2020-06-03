@@ -32,7 +32,8 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    fix_parser::FixParser parser;
+    const size_t orderBookDepth = 5;
+    fix_parser::FixParser parser{orderBookDepth};
 
     try {
         parser.process(filename);
@@ -41,7 +42,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    std::cout << parser.market_data_to_s(5) << std::endl;
+    std::cout << parser.market_data_to_s(orderBookDepth) << std::endl;
 
     return 0;
 }

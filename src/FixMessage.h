@@ -6,6 +6,7 @@
 
 namespace fix_parser {
     class FixMessage {
+        // FixMessage class gathers all required ticks fields for updating Order Book
     public:
         enum class UpdateAction {
             New,
@@ -34,6 +35,7 @@ namespace fix_parser {
         bool isCompleted() const {
             return _update_action && _side && _price && _qty;
         }
+        // returns true if of all required fields are set and false otherwise
 
     private:
         std::optional <UpdateAction> _update_action;

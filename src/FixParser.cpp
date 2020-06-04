@@ -40,6 +40,50 @@ namespace fix_parser {
         return res;
     }
 
+    std::tuple<bool, bool>
+    FixParser::parse_first_group_required_tag(FixMessage &msg, int tag, const std::string_view &value,
+                                              const std::string_view &msg_type) {
+        if (msg_type == MARKET_DATA_INCREMENTAL_REFRESH_TYPE) {
+            if (tag != MD_UPDATE_ACTION_TAG) {
+                std::cerr << "Failed to parse MDIncrementalRefresh message,"
+                             " mandatory tag MDUpdateAction in MDEntries group is missing" << std::endl;
+                return {true, false};
+            }
+
+            if (!msg.set_update_action(value)) {
+                return {false, true};
+            }
+        } else if (msg_type == MARKET_DATA_SNAPSHOT_TYPE) {
+            if (tag != MD_ENTRY_TYPE_TAG) {
+                std::cerr << "Failed to parse MDSnapshot message, mandatory tag MDEntryType "
+                             "in MDEntries group is missing" << std::endl;
+                return {true, false};
+            }
+
+            if (!msg.set_side(value)) {
+                return {false, true};
+            }
+            msg.set_update_action("0"); // all msgs in MDEntries group have 'New' MDUpdateAction by default
+        } else {
+            return {true, false};
+        }
+
+        return {false, false};
+    }
+
+    bool FixParser::mandatory_tag_occured(std::string_view &mandatory_value, int tag, const std::string_view &value,
+                                          const std::string_view &msg_type) {
+        if (msg_type == MARKET_DATA_INCREMENTAL_REFRESH_TYPE && tag == MD_UPDATE_ACTION_TAG) {
+            mandatory_value = value;
+            return true;
+        } else if (msg_type == MARKET_DATA_SNAPSHOT_TYPE && tag == MD_ENTRY_TYPE_TAG) {
+            mandatory_value = value;
+            return true;
+        }
+
+        return false;
+    }
+
     void FixParser::update_order_book(const FixMessage &msg) {
         FixMessage::UpdateAction ua = msg.get_update_action().value();
         LevelData level_data;
@@ -53,9 +97,8 @@ namespace fix_parser {
         }
     }
 
-    std::string_view
-    FixParser::parse_md_snapshot_group(const std::string_view &group, const std::string_view &numEntriesStr,
-                                       uint64_t volumeMultiplier) {
+    std::string_view FixParser::parse_md_group(const std::string_view &msg_type, const std::string_view &group,
+                                               const std::string_view &numEntriesStr, uint64_t volumeMultiplier) {
         std::string_view str_left = group;
         auto[num_md_entries, ec] = parse_number<int>(numEntriesStr);
         if (ec != std::errc()) {
@@ -72,73 +115,24 @@ namespace fix_parser {
                 break;
             }
 
-            if (mandatory_tag != MD_ENTRY_TYPE_TAG) {
-                std::cerr << "Failed to parse MDSnapshot message, mandatory tag MDEntryType "
-                             "in MDEntries group is missing" << std::endl;
+            auto[err_occured, to_continue] = parse_first_group_required_tag(msg, mandatory_tag, mandatory_value,
+                                                                            msg_type);
+            if (err_occured) {
                 return str_left;
             }
 
-            if (!msg.set_side(mandatory_value)) {
+            if (to_continue) {
                 continue;
             }
 
-            msg.set_update_action("0"); // all msgs in MDEntries group have 'New' MDUpdateAction by default
             while (!str_left.empty()) {
                 auto[sub_tag, sub_value, sub_updated_str] = get_next_tag_value(str_left);
                 str_left = sub_updated_str;
-                if (sub_tag == MD_ENTRY_TYPE_TAG) {
-                    mandatory_value = sub_value;
+                if (mandatory_tag_occured(mandatory_value, sub_tag, sub_value, msg_type)) {
                     break;
-                } else if (sub_tag == MD_ENTRY_PX) {
-                    msg.set_price(sub_value);
-                } else if (sub_tag == MD_ENTRY_SIZE) {
-                    msg.set_qty(sub_value, volumeMultiplier);
                 }
-            }
-
-            if (msg.is_completed()) {
-                update_order_book(msg);
-            }
-        }
-
-        return str_left;
-    }
-
-    std::string_view
-    FixParser::parse_md_incremental_refresh_group(const std::string_view &group, const std::string_view &numEntriesStr,
-                                                  uint64_t volumeMultiplier) {
-        std::string_view str_left = group;
-        auto[num_md_entries, ec] = parse_number<int>(numEntriesStr);
-        if (ec != std::errc()) {
-            std::cerr << "Failed to parse numMDEntries tag value: " << numEntriesStr << std::endl;
-            return str_left;
-        }
-
-        auto[mandatory_tag, mandatory_value, updated_str] = get_next_tag_value(str_left);
-        str_left = updated_str;
-        for (size_t i = 0; i < num_md_entries; ++i) {
-            FixMessage msg;
-
-            if (str_left.empty()) {
-                break;
-            }
-
-            if (mandatory_tag != MD_UPDATE_ACTION_TAG) {
-                std::cerr << "Failed to parse MDIncrementalRefresh message,"
-                             " mandatory tag MDUpdateAction in MDEntries group is missing" << std::endl;
-                return str_left;
-            }
-
-            if (!msg.set_update_action(mandatory_value)) {
-                continue;
-            }
-
-            while (!str_left.empty()) {
-                auto[sub_tag, sub_value, sub_updated_str] = get_next_tag_value(str_left);
-                str_left = sub_updated_str;
                 if (sub_tag == MD_UPDATE_ACTION_TAG) {
-                    mandatory_value = sub_value;
-                    break;
+                    msg.set_update_action(sub_value);
                 } else if (sub_tag == MD_ENTRY_PX) {
                     msg.set_price(sub_value);
                 } else if (sub_tag == MD_ENTRY_SIZE) {
@@ -174,11 +168,7 @@ namespace fix_parser {
                     break;
                 }
                 case NO_MD_ENTRIES: {
-                    if (msg_type == MARKET_DATA_SNAPSHOT_TYPE) {
-                        line = parse_md_snapshot_group(line, value, contract_size_multiplier);
-                    } else if (msg_type == MARKET_DATA_INCREMENTAL_REFRESH_TYPE) {
-                        line = parse_md_incremental_refresh_group(line, value, contract_size_multiplier);
-                    }
+                    parse_md_group(msg_type, line, value, contract_size_multiplier);
                     return;
                 }
                 default:

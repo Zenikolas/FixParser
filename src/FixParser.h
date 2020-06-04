@@ -23,19 +23,22 @@ namespace fix_parser {
         // print to stdout current OrderBook with specified 'depth'
 
     private:
+        std::tuple<bool, bool> parse_first_group_required_tag(FixMessage &msg, int tag, const std::string_view &value,
+                                                              const std::string_view &msg_type);
+
+        bool mandatory_tag_occured(std::string_view &mandatory_value, int tag, const std::string_view &value,
+                                   const std::string_view &msg_type);
+
         std::tuple<int, std::string_view, std::string_view> get_next_tag_value(const std::string_view &line);
 
-        std::string_view parse_md_snapshot_group(const std::string_view &group, const std::string_view &numEntriesStr,
-                                                 uint64_t volumeMultiplier);
-
-        std::string_view
-        parse_md_incremental_refresh_group(const std::string_view &group, const std::string_view &numEntriesStr,
-                                           uint64_t volumeMultiplier);
+        std::string_view parse_md_group(const std::string_view &msg_type, const std::string_view &group,
+                                        const std::string_view &numEntriesStr,
+                                        uint64_t volumeMultiplier);
 
 
-        void parse_md_msg(const std::string_view &msg, const std::string_view& msg_type);
+        void parse_md_msg(const std::string_view &msg, const std::string_view &msg_type);
 
-        void update_order_book(const FixMessage& msg);
+        void update_order_book(const FixMessage &msg);
 
         const char DELIMITER{'^'};
         const char TAG_VALUE_DELIMETER{'='};

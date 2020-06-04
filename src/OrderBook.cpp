@@ -31,7 +31,7 @@ std::string OrderBook::to_s(const size_t depth) {
         temp_string = "[" + std::to_string(count) + "]: price: " + std::to_string(it.first) +
                       " (" + std::to_string(it.second) + ")\n" + temp_string;
         count++;
-        if (count > depth) {
+        if (count >= depth) {
             break;
         }
     }
@@ -44,7 +44,7 @@ std::string OrderBook::to_s(const size_t depth) {
         out_string += "[" + std::to_string(count) + "]: price: " + std::to_string(it->first) +
                       " (" + std::to_string(it->second) + ")\n";
         count++;
-        if (count > depth) {
+        if (count >= depth) {
             break;
         }
     }

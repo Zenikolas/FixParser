@@ -22,10 +22,6 @@ public:
     void del(const LevelData &level);
 
 private:
-    const std::string_view RESET = "\033[0m";
-    const std::string_view RED = "\033[31m";
-    const std::string_view GREEN = "\033[32m";
-
     std::map<double, uint64_t> _buy; // todo change to DECIMAL
     std::map<double, uint64_t> _sell;
 };

@@ -1,4 +1,3 @@
-#include <sstream>
 #include "OrderBook.h"
 
 namespace fix_parser {
@@ -21,44 +20,39 @@ void OrderBook::del(const LevelData &level) {
 std::string OrderBook::to_s(const size_t depth) {
     std::string out_string = "Total SELL: " + std::to_string(_sell.size()) + "\n";
 
-    std::stringstream sell_output;
-    sell_output << RED;
+    std::string temp_string;
 
-    auto sell_end_it = _sell.rend();
     if (depth < _sell.size()) {
-        sell_output << "...\n";
-        std::advance(sell_end_it, -depth);
-    } else {
-        sell_end_it = _sell.rbegin();
+        out_string += "...\n";
     }
 
-    uint16_t count = depth;
-    for (auto it = sell_end_it; it != _sell.rend(); ++it) {
-        sell_output << "[" + std::to_string(--count) + "]: price: " + std::to_string(it->first) +
-                       " (" + std::to_string(it->second) + ")\n";
+    uint16_t count = 0;
+    for (auto &it : _sell) {
+        temp_string = "[" + std::to_string(count) + "]: price: " + std::to_string(it.first) +
+                      " (" + std::to_string(it.second) + ")\n" + temp_string;
+        count++;
+        if (count > depth) {
+            break;
+        }
     }
 
-    sell_output << RESET;
-    out_string += sell_output.str();
+    out_string += temp_string;
     out_string += "==================\n";
 
-    std::stringstream buy_output;
-    buy_output << GREEN;
     count = 0;
     for (auto it = _buy.rbegin(); it != _buy.rend(); it++) {
-        buy_output << "[" + std::to_string(count++) + "]: price: " + std::to_string(it->first) +
+        out_string += "[" + std::to_string(count) + "]: price: " + std::to_string(it->first) +
                       " (" + std::to_string(it->second) + ")\n";
-        if (count >= depth) {
+        count++;
+        if (count > depth) {
             break;
         }
     }
 
     if (depth < _buy.size()) {
-        buy_output << "...\n";
+        out_string += "...\n";
     }
 
-    buy_output << RESET;
-    out_string += buy_output.str();
     out_string += "Total BUY: " + std::to_string(_buy.size()) + "\n";
     return out_string;
 }

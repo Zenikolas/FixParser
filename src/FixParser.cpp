@@ -150,7 +150,6 @@ namespace fix_parser {
 
             if (msg.is_completed()) {
                 update_order_book(msg);
-                break;
             }
         }
 
@@ -177,7 +176,7 @@ namespace fix_parser {
                 case NO_MD_ENTRIES: {
                     if (msg_type == MARKET_DATA_SNAPSHOT_TYPE) {
                         line = parse_md_snapshot_group(line, value, contract_size_multiplier);
-                    } else if (msg_type == MARKET_DATA_SNAPSHOT_TYPE) {
+                    } else if (msg_type == MARKET_DATA_INCREMENTAL_REFRESH_TYPE) {
                         line = parse_md_incremental_refresh_group(line, value, contract_size_multiplier);
                     }
                     return;

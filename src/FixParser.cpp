@@ -1,6 +1,6 @@
-#include "FixParser.h"
+#include <FixParser.h>
 
-#include "ParseUtils.h"
+#include <ParseUtils.h>
 
 namespace fix_parser {
     void FixParser::process(const std::string &filename) {
@@ -71,8 +71,8 @@ namespace fix_parser {
         return {false, false};
     }
 
-    bool FixParser::mandatory_tag_occured(std::string_view &mandatory_value, int tag, const std::string_view &value,
-                                          const std::string_view &msg_type) {
+    bool FixParser::mandatory_tag_occurred(std::string_view &mandatory_value, int tag, const std::string_view &value,
+                                           const std::string_view &msg_type) {
         if (msg_type == MARKET_DATA_INCREMENTAL_REFRESH_TYPE && tag == MD_UPDATE_ACTION_TAG) {
             mandatory_value = value;
             return true;
@@ -128,7 +128,7 @@ namespace fix_parser {
             while (!str_left.empty()) {
                 auto[sub_tag, sub_value, sub_updated_str] = get_next_tag_value(str_left);
                 str_left = sub_updated_str;
-                if (mandatory_tag_occured(mandatory_value, sub_tag, sub_value, msg_type)) {
+                if (mandatory_tag_occurred(mandatory_value, sub_tag, sub_value, msg_type)) {
                     break;
                 }
                 if (sub_tag == MD_UPDATE_ACTION_TAG) {

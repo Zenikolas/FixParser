@@ -16,23 +16,23 @@ namespace fix_parser {
 
         FixMessage() = default;
 
-        void setUpdateAction(const std::string_view &value);
+        bool set_update_action(const std::string_view &value);
 
-        void setSide(const std::string_view &value);
+        bool set_side(const std::string_view &value);
 
-        void setPrice(const std::string_view &value);
+        bool set_price(const std::string_view &value);
 
-        void setQty(const std::string_view &value, uint64_t volumeMultiplier);
+        bool set_qty(const std::string_view &value, uint64_t volumeMultiplier);
 
-        const std::optional <UpdateAction> &getUpdateAction() const { return _update_action; }
+        const std::optional <UpdateAction> &get_update_action() const { return _update_action; }
 
-        const std::optional <Side> &getSide() const { return _side; }
+        const std::optional <Side> &get_side() const { return _side; }
 
-        const std::optional<double> &getPrice() const { return _price; }
+        const std::optional<double> &get_price() const { return _price; }
 
-        const std::optional <uint64_t> &getQty() const { return _qty; }
+        const std::optional <uint64_t> &get_qty() const { return _qty; }
 
-        bool isCompleted() const {
+        bool is_completed() const {
             return _update_action && _side && _price && _qty;
         }
         // returns true if of all required fields are set and false otherwise

@@ -5,10 +5,10 @@
 #include <iostream>
 
 namespace fix_parser {
-    void FixMessage::setUpdateAction(const std::string_view &value) {
+    bool FixMessage::set_update_action(const std::string_view &value) {
         if (value.size() != 1) {
             std::cerr << "Invalid size for MDUpdateAction value: " << value.size() << std::endl;
-            return;
+            return false;
         }
 
         switch (value[0] - '0') {
@@ -22,19 +22,17 @@ namespace fix_parser {
                 _update_action = UpdateAction::Delete;
                 break;
             default:
-                std::cerr << "Unknown MDUpdateAction value: " << value << std::endl;
-                break;
+                std::cerr << "skipping MDUpdateAction value: " << value << std::endl;
+                return false;
         }
 
-        _side.reset();
-        _price.reset();
-        _qty.reset();
+        return true;
     }
 
-    void FixMessage::setSide(const std::string_view &value) {
+    bool FixMessage::set_side(const std::string_view &value) {
         if (value.size() != 1) {
             std::cerr << "Invalid size for MDEntryType value: " << value.size() << std::endl;
-            return;
+            return false;
         }
 
         switch (value[0] - '0') {
@@ -44,39 +42,36 @@ namespace fix_parser {
             case 1:
                 _side = Side::SELL;
                 break;
-            case 2:
-                std::cerr << "skipping MDEntryType - trade" << std::endl;
-                break;
             default:
-                std::cerr << "Unknown MDEntryType value: " << value << std::endl;
-                break;
+                std::cerr << "skipping MDEntryType value: " << value << std::endl;
+                return false;
         }
 
-        _price.reset();
-        _qty.reset();
+        return true;
     }
 
-    void FixMessage::setPrice(const std::string_view &value) {
+    bool FixMessage::set_price(const std::string_view &value) {
         try {
             _price = std::stod(value.data());
         } catch (const std::invalid_argument &exception) {
             std::cerr << exception.what() << std::endl;
-            return;
+            return false;
         } catch (const std::out_of_range &exception) {
             std::cerr << exception.what() << std::endl;
-            return;
+            return false;
         }
 
-        _qty.reset();
+        return true;
     }
 
-    void FixMessage::setQty(const std::string_view &value, uint64_t volumeMultiplier) {
-        auto[qty, ec] = parseNumber<uint64_t>(value);
+    bool FixMessage::set_qty(const std::string_view &value, uint64_t volumeMultiplier) {
+        auto[qty, ec] = parse_number<uint64_t>(value);
         if (ec != std::errc()) {
             std::cerr << "Failed to parse MDEntrySize tag value: " << value << std::endl;
-            return;
+            return false;
         }
 
         _qty = qty * volumeMultiplier;
+        return true;
     }
 }

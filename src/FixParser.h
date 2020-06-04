@@ -4,12 +4,13 @@
 #include <OrderBook.h>
 
 #include <memory>
+#include "FixMessage.h"
 
 namespace fix_parser {
     class FixParser : public DataReaderHandler {
     public:
         FixParser(size_t orderBookDepth = 5) : _orderBookDepth(orderBookDepth),
-                                           _reader(std::make_unique<DataReader>(this)) {};
+                                               _reader(std::make_unique<DataReader>(this)) {};
         // specified 'orderBookDepth' parameter defines depth of OrderBook to print after each processed message
 
         void handle_line(const std::string &line) override;
@@ -22,11 +23,19 @@ namespace fix_parser {
         // print to stdout current OrderBook with specified 'depth'
 
     private:
-        std::tuple<int, std::string_view, std::string_view> getNextTagValue(const std::string_view &line);
+        std::tuple<int, std::string_view, std::string_view> get_next_tag_value(const std::string_view &line);
+
+        std::string_view parse_md_snapshot_group(const std::string_view &group, const std::string_view &numEntriesStr,
+                                                 uint64_t volumeMultiplier);
 
         std::string_view
-        parse_group(const std::string_view& groupStr, const std::string_view &numEntriesStr, const std::string_view &msgType,
-                    const std::string_view &line, uint64_t volumeMultiplier);
+        parse_md_incremental_refresh_group(const std::string_view &group, const std::string_view &numEntriesStr,
+                                           uint64_t volumeMultiplier);
+
+
+        void parse_md_msg(const std::string_view &msg, const std::string_view& msg_type);
+
+        void update_order_book(const FixMessage& msg);
 
         const char DELIMITER{'^'};
         const char TAG_VALUE_DELIMETER{'='};

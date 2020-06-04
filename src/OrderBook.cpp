@@ -4,7 +4,7 @@
 namespace fix_parser {
 void OrderBook::add_change(const LevelData &level) {
     if (level.side == Side::BUY) {
-        _buy[level.price] = level.qty; //
+        _buy[level.price] = level.qty;
     } else {
         _sell[level.price] = level.qty;
     }

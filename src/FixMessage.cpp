@@ -64,14 +64,14 @@ namespace fix_parser {
         return true;
     }
 
-    bool FixMessage::set_qty(const std::string_view &value, uint64_t volumeMultiplier) {
+    bool FixMessage::set_qty(const std::string_view &value, uint64_t volume_multiplier) {
         auto[qty, ec] = parse_number<uint64_t>(value);
         if (ec != std::errc()) {
             std::cerr << "Failed to parse MDEntrySize tag value: " << value << std::endl;
             return false;
         }
 
-        _qty = qty * volumeMultiplier;
+        _qty = qty * volume_multiplier;
         return true;
     }
 }

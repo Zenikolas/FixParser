@@ -98,11 +98,11 @@ namespace fix_parser {
     }
 
     std::string_view FixParser::parse_md_group(const std::string_view &msg_type, const std::string_view &group,
-                                               const std::string_view &numEntriesStr, uint64_t volumeMultiplier) {
+                                               const std::string_view &num_entries_str, uint64_t volume_multiplier) {
         std::string_view str_left = group;
-        auto[num_md_entries, ec] = parse_number<int>(numEntriesStr);
+        auto[num_md_entries, ec] = parse_number<int>(num_entries_str);
         if (ec != std::errc()) {
-            std::cerr << "Failed to parse numMDEntries tag value: " << numEntriesStr << std::endl;
+            std::cerr << "Failed to parse numMDEntries tag value: " << num_entries_str << std::endl;
             return str_left;
         }
 
@@ -136,7 +136,7 @@ namespace fix_parser {
                 } else if (sub_tag == MD_ENTRY_PX) {
                     msg.set_price(sub_value);
                 } else if (sub_tag == MD_ENTRY_SIZE) {
-                    msg.set_qty(sub_value, volumeMultiplier);
+                    msg.set_qty(sub_value, volume_multiplier);
                 } else if (sub_tag == MD_ENTRY_TYPE_TAG) {
                     msg.set_side(sub_value);
                 }

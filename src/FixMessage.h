@@ -22,7 +22,7 @@ public:
 
     bool set_price(const std::string_view &value);
 
-    bool set_qty(const std::string_view &value, uint64_t volumeMultiplier);
+    bool set_qty(const std::string_view &value, uint64_t volume_multiplier);
 
     const std::optional <UpdateAction> &get_update_action() const { return _update_action; }
 

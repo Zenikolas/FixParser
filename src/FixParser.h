@@ -9,8 +9,8 @@
 namespace fix_parser {
 class FixParser : public DataReaderHandler {
 public:
-    FixParser(size_t orderBookDepth = 5) : _orderBookDepth(orderBookDepth),
-                                           _reader(std::make_unique<DataReader>(this)) {};
+    FixParser(size_t order_book_depth = 5) : _orderBookDepth(order_book_depth),
+                                             _reader(std::make_unique<DataReader>(this)) {};
     // specified 'orderBookDepth' parameter defines depth of the OrderBook to print
 
     void handle_line(const std::string &line) override;
@@ -32,8 +32,8 @@ private:
     std::tuple<int, std::string_view, std::string_view> get_next_tag_value(const std::string_view &line);
 
     std::string_view parse_md_group(const std::string_view &msg_type, const std::string_view &group,
-                                    const std::string_view &numEntriesStr,
-                                    uint64_t volumeMultiplier);
+                                    const std::string_view &num_entries_str,
+                                    uint64_t volume_multiplier);
 
 
     void parse_md_msg(const std::string_view &msg, const std::string_view &msg_type);
